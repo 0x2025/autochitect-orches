@@ -111,7 +111,7 @@ Node.js is used for its high-speed I/O and vast ecosystem of WebSocket libraries
 
 ### Prerequisites
 - Node.js >= 18.x
-- Go >= 1.20.x
+- Go >= 1.26.1
 - Docker
 
 ### Setup
