@@ -110,7 +110,7 @@ Node.js is used for its high-speed I/O and vast ecosystem of WebSocket libraries
 ## 8. Development Workflow
 
 ### Prerequisites
-- Node.js >= 18.x
+- Node.js >= 22.x
 - Go >= 1.26.1
 - Docker
 
