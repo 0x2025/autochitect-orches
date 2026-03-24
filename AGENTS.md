@@ -75,3 +75,67 @@ Node.js is used for its high-speed I/O and vast ecosystem of WebSocket libraries
   }
 }
 ```
+
+### Task Response (Client -> Server)
+```json
+{
+  "type": "TASK_UPDATE",
+  "payload": {
+    "task_id": "99b-001",
+    "status": "RUNNING" | "COMPLETED" | "FAILED",
+    "log_output": "...",
+    "error_message": "..."
+  }
+}
+```
+
+---
+
+## 7. Project Structure
+
+```
+/
+├── server/         # Node.js Control Plane
+│   ├── src/
+│   └── package.json
+├── landlord/       # Go Landlord Daemon
+│   ├── cmd/
+│   └── go.mod
+├── scripts/        # Build and utility scripts
+└── AGENTS.md       # You are here
+```
+
+---
+
+## 8. Development Workflow
+
+### Prerequisites
+- Node.js >= 18.x
+- Go >= 1.20.x
+- Docker
+
+### Setup
+1. **Install Server Dependencies:** `cd server && npm install`
+2. **Install Client Dependencies:** `cd landlord && go mod tidy`
+
+### Running the System (Example)
+1. **Start the Server:** `cd server && npm start`
+2. **Start the Landlord Daemon:** `cd landlord && go run ./cmd/daemon`
+
+### Testing
+- **Server:** `cd server && npm test`
+- **Landlord:** `cd landlord && go test ./...`
+
+---
+
+## 9. Agent Guidelines
+
+### Your Role
+You are an AI agent responsible for developing and maintaining the Autochitect infrastructure. Your primary tasks will involve modifying the Node.js server and the Go landlord daemon.
+
+### Best Practices
+- **Code Style:** Follow the existing code style. For Go, run `gofmt` before committing. For Node.js, follow the conventions defined in `.eslintrc`.
+- **Testing:** All new features must be accompanied by unit tests. All bug fixes must include a regression test.
+- **Dependencies:** Do not add new dependencies without careful consideration. The landlord daemon, in particular, should remain lightweight.
+- **Communication:** When you complete a task, provide a clear and concise summary of your changes in the pull request description.
+
