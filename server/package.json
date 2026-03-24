@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "node test_simple.js",
+    "test": "jest",
     "build": "echo \"Building server...\" && exit 0"
   },
   "devDependencies": {
