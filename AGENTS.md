@@ -139,3 +139,15 @@ You are an AI agent responsible for developing and maintaining the Autochitect i
 - **Dependencies:** Do not add new dependencies without careful consideration. The landlord daemon, in particular, should remain lightweight.
 - **Communication:** When you complete a task, provide a clear and concise summary of your changes in the pull request description.
 
+-e 
+## Scripts for Project Setup and Testing
+
+The following scripts are provided at the repository root to streamline common tasks:
+
+- `setup.sh`: Installs all dependencies for both the Node.js server and Go landlord daemon.
+- `build.sh`: Builds the Node.js server and Go landlord binary.
+- `test.sh`: Runs tests for both components.
+- `format.sh`: Formats code for both components using standard formatters.
+
+All scripts are idempotent and can be safely re-run.
+

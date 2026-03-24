@@ -1,0 +1,11 @@
+#!/bin/bash
+# Build both Node.js and Go components
+set -e
+
+echo "Building Node.js server..."
+cd server && npm run build && cd ..
+
+echo "Building Go landlord..."
+go build -o ../landlord/bin/landlord ./../landlord
+
+echo "Build complete."

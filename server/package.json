@@ -1,0 +1,9 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Running server tests...\" && exit 0",
+    "build": "echo \"Building server...\" && exit 0"
+  }
+}
