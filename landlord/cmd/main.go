@@ -116,11 +116,17 @@ func fetchAndInstall() {
 		}
 	}
 
-	// Report OpenShell version from server
-	if version, ok := update["openshell_version"]; ok {
-		fmt.Printf("OpenShell version from server: %v\n", version)
+	// Report OpenShell version from installed tool
+	if isInstalled("openshell") {
+		versionCmd := exec.Command("openshell", "--version")
+		out, err := versionCmd.CombinedOutput()
+		if err != nil {
+			fmt.Printf("Failed to get OpenShell version: %v\n", err)
+		} else {
+			fmt.Printf("OpenShell version: %s\n", strings.TrimSpace(string(out)))
+		}
 	} else {
-		fmt.Println("No OpenShell version information available in update.json")
+		fmt.Println("OpenShell not installed")
 	}
 }
 
