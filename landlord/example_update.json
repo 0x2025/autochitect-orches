@@ -1,0 +1,15 @@
+{
+  "docker": {
+    "linux": "https://example.com/docker/latest/docker-linux",
+    "macos": "https://example.com/docker/latest/docker-macos"
+  },
+  "podman": {
+    "linux": "https://example.com/podman/latest/podman-linux",
+    "macos": "https://example.com/podman/latest/podman-macos"
+  },
+  "openshell": {
+    "linux": "https://example.com/openshell/latest/openshell-linux",
+    "macos": "https://example.com/openshell/latest/openshell-macos"
+  },
+  "openshell_version": "1.2.3"
+}
