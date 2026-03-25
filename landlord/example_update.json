@@ -11,5 +11,5 @@
     "linux": "https://example.com/openshell/latest/openshell-linux",
     "macos": "https://example.com/openshell/latest/openshell-macos"
   },
-  "openshell_version": "1.2.3"
+  "landlord_version": "1.2.3"
 }
