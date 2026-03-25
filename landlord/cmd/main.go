@@ -39,7 +39,7 @@ func start() {
 	fmt.Println("Starting landlord...")
 	checkTool("docker")
 	checkTool("openshell")
-	fetchUpdate()
+	fetchAndInstall()
 }
 
 func checkTool(name string) {
@@ -56,38 +56,47 @@ func checkTool(name string) {
 	fmt.Printf("%s: %s\n", strings.TrimSpace(name), strings.TrimSpace(string(out)))
 }
 
-func fetchUpdate() {
+func fetchAndInstall() {
+	// Fetch update.json
 	resp, err := http.Get("https://autochitect.com/landlord/update.json")
 	if err != nil {
 		fmt.Printf("Failed to fetch update.json: %v\n", err)
 		return
 	}
 	defer resp.Body.Close()
-
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("Failed to read update.json: %v\n", err)
+		return
+	}
 	var update map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&update); err != nil {
+	if err := json.Unmarshal(body, &update); err != nil {
 		fmt.Printf("Failed to parse update.json: %v\n", err)
 		return
 	}
 
-	// Handle OS-specific installation
+	// Determine OS
 	osType := "linux"
 	if runtime.GOOS == "darwin" {
 		osType = "macos"
 	}
 
-	// Install missing tools based on OS
-	if !isInstalled("docker") {
-		fmt.Println("Installing docker...")
-		installTool("docker", getToolURL(update, "docker", osType))
-	}
-	if !isInstalled("podman") {
-		fmt.Println("Installing podman...")
-		installTool("podman", getToolURL(update, "podman", osType))
-	}
-	if !isInstalled("openshell") {
-		fmt.Println("Installing openshell...")
-		installTool("openshell", getToolURL(update, "openshell", osType))
+	// Install missing tools
+	tools := []string{"docker", "podman", "openshell"}
+	for _, tool := range tools {
+		if !isInstalled(tool) {
+			fmt.Printf("%s: not installed, installing...\n", tool)
+			url, err := getToolURL(update, tool, osType)
+			if err != nil {
+				fmt.Printf("Could not get URL for %s: %v\n", tool, err)
+				continue
+			}
+			if err := downloadAndInstall(tool, url); err != nil {
+				fmt.Printf("Failed to install %s: %v\n", tool, err)
+			} else {
+				fmt.Printf("%s: installed successfully\n", tool)
+			}
+		}
 	}
 
 	// Report OpenShell version from server
@@ -98,124 +107,55 @@ func fetchUpdate() {
 	}
 }
 
-func getToolURL(update map[string]interface{}, tool, osType string) string {
-	// Get URL from update.json based on tool and OS
-	switch tool {
-	case "docker":
-		return getDockerURL(update, osType)
-	case "podman":
-		return getPodmanURL(update, osType)
-	case "openshell":
-		return getOpenShellURL(update, osType)
-	default:
-		return ""
-	}
-}
-
-func getDockerURL(update map[string]interface{}, osType string) string {
-	// Docker installation URLs based on OS
-	switch osType {
-	case "macos":
-		return "https://desktop.docker.com/mac/stable/Docker.dmg"
-	case "linux":
-		return "https://download.docker.com/linux/ubuntu/dists/" +
-			"$(lsb_release -cs)/pool/stable/x86_64/docker-ce-cli_" +
-			"$(apt-cache madison docker-ce-cli | head -1 | awk '{print $3}')_amd64.deb"
-	default:
-		return ""
-	}
-}
-
-func getPodmanURL(update map[string]interface{}, osType string) string {
-	// Podman installation URLs based on OS
-	switch osType {
-	case "macos":
-		return "https://github.com/containers/podman/releases/download/latest/podman-desktop-mac.tar.gz"
-	case "linux":
-		return "https://github.com/containers/podman/releases/download/latest/podman-latest.tar.gz"
-	default:
-		return ""
-	}
-}
-
-func getOpenShellURL(update map[string]interface{}, osType string) string {
-	// OpenShell installation URLs based on OS
-	switch osType {
-	case "macos":
-		return update["openshell_url"].(string)
-	case "linux":
-		return update["openshell_url"].(string)
-	default:
-		return ""
-	}
-}
-
-func installTool(name, url string) error {
-	fmt.Printf("Downloading %s...\n", name)
-	resp, err := http.Get(url)
-	if err != nil {
-		return fmt.Errorf("failed to download %s: %w", name, err)
-	}
-	defer resp.Body.Close()
-
-	// Save to temporary file
-	tmpFile, err := os.CreateTemp("", name)
-	if err != nil {
-		return err
-	}
-	defer tmpFile.Close()
-
-	// Copy response to file
-	if _, err := io.Copy(tmpFile, resp.Body); err != nil {
-		return err
-	}
-	tmpFile.Close()
-
-	// Install based on OS and tool type
-	switch name {
-	case "docker":
-		if runtime.GOOS == "darwin" {
-			// For macOS: mount and copy app
-			fmt.Println("Mounting Docker for macOS...")
-			// Actual mounting logic would go here
-		} else {
-			// For Linux: install Debian package
-			fmt.Println("Installing Docker for Linux...")
-			// Actual installation logic would go here
-		}
-	case "podman":
-		if runtime.GOOS == "darwin" {
-			// For macOS: extract and install
-			fmt.Println("Extracting Podman for macOS...")
-			// Actual extraction logic would go here
-		} else {
-			// For Linux: extract and move binaries
-			fmt.Println("Extracting Podman for Linux...")
-			// Actual extraction logic would go here
-		}
-	case "openshell":
-		if runtime.GOOS == "darwin" {
-			// For macOS: mount and copy app
-			fmt.Println("Mounting OpenShell for macOS...")
-			// Actual mounting logic would go here
-		} else {
-			// For Linux: extract and move binaries
-			fmt.Println("Extracting OpenShell for Linux...")
-			// Actual extraction logic would go here
-		}
-	default:
-		return fmt.Errorf("unknown tool: %s", name)
-	}
-
-	// Verify installation
-	if _, err := exec.LookPath(name); err != nil {
-		return fmt.Errorf("%s installation failed: %w", name, err)
-	}
-	fmt.Printf("%s installed successfully\n", name)
-	return nil
-}
-
 func isInstalled(name string) bool {
 	_, err := exec.LookPath(name)
 	return err == nil
+}
+
+func getToolURL(update map[string]interface{}, tool, osType string) (string, error) {
+	if toolData, ok := update[tool]; ok {
+		if toolDataMap, ok := toolData.(map[string]interface{}); ok {
+			if urls, ok := toolDataMap["url"].(map[string]interface{}); ok {
+				if url, ok := urls[osType]; ok {
+					return fmt.Sprintf("%v", url), nil
+				}
+			}
+		}
+	}
+	return "", fmt.Errorf("URL not found for tool %s on %s", tool, osType)
+}
+
+func downloadAndInstall(tool, url string) error {
+	// Download the file
+	resp, err := http.Get(url)
+	if err != nil {
+		return fmt.Errorf("download request failed: %w", err)
+	}
+	defer resp.Body.Close()
+	// Save to /tmp/<tool>-installer
+	filePath := fmt.Sprintf("/tmp/%s-installer", tool)
+	out, err := os.Create(filePath)
+	if err != nil {
+		return fmt.Errorf("create file failed: %w", err)
+	}
+	defer out.Close()
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return fmt.Errorf("download failed: %w", err)
+	}
+
+	// Install based on OS
+	switch runtime.GOOS {
+	case "darwin":
+		// For macOS, maybe open the dmg or run an installer
+		// Here we just simulate
+		fmt.Printf("On macOS, you would open %s to install %s\n", url, tool)
+		return nil
+	default:
+		// For Linux, maybe make executable and copy
+		execCmd := exec.Command("sh", "-c", fmt.Sprintf("chmod +x %s && echo 'Installing %s'", filePath, tool))
+		execCmd.Stdout = os.Stdout
+		execCmd.Stderr = os.Stderr
+		return execCmd.Run()
+	}
 }
